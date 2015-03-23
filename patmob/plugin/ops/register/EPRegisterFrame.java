@@ -5,6 +5,8 @@
  */
 package patmob.plugin.ops.register;
 
+import java.io.File;
+import javax.swing.JFileChooser;
 import patmob.data.ops.impl.RegisterRequestParams;
 
 /**
@@ -44,9 +46,9 @@ public class EPRegisterFrame extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         searchQueryTextArea = new javax.swing.JTextArea();
-        jRadioButton1 = new javax.swing.JRadioButton();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jTextField1 = new javax.swing.JTextField();
+        searchSampleResultButton = new javax.swing.JRadioButton();
+        searchAllResultButton = new javax.swing.JRadioButton();
+        searchAllResultField = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         jRadioButton3 = new javax.swing.JRadioButton();
@@ -75,12 +77,17 @@ public class EPRegisterFrame extends javax.swing.JFrame {
         searchQueryTextArea.setRows(2);
         jScrollPane2.setViewportView(searchQueryTextArea);
 
-        buttonGroup3.add(jRadioButton1);
-        jRadioButton1.setSelected(true);
-        jRadioButton1.setText("Tree Sample");
+        buttonGroup3.add(searchSampleResultButton);
+        searchSampleResultButton.setSelected(true);
+        searchSampleResultButton.setText("Tree Sample");
 
-        buttonGroup3.add(jRadioButton2);
-        jRadioButton2.setText("Download All:");
+        buttonGroup3.add(searchAllResultButton);
+        searchAllResultButton.setText("Download All:");
+        searchAllResultButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchAllResultButtonActionPerformed(evt);
+            }
+        });
 
         jLabel2.setText("Results");
 
@@ -93,12 +100,12 @@ public class EPRegisterFrame extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 373, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jRadioButton2)
+                        .addComponent(searchAllResultButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1))
+                        .addComponent(searchAllResultField))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jRadioButton1)
+                            .addComponent(searchSampleResultButton)
                             .addComponent(jLabel2)
                             .addComponent(jLabel1))
                         .addGap(0, 0, Short.MAX_VALUE)))
@@ -114,11 +121,11 @@ public class EPRegisterFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jRadioButton1)
+                .addComponent(searchSampleResultButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jRadioButton2)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(searchAllResultButton)
+                    .addComponent(searchAllResultField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -251,8 +258,19 @@ public class EPRegisterFrame extends javax.swing.JFrame {
                 if (!query.equals("")) {
                     RegisterRequestParams searchParams = 
                             new RegisterRequestParams(query);
+                    if (searchSampleResultButton.isSelected()) {
+                        searchParams.setResultType(
+                                RegisterRequestParams.SAMPLE_RESULT);
+                    } else {
+                        searchParams.setResultType(
+                                RegisterRequestParams.ALL_RESULT);
+                        searchParams.setFilePath(
+                                searchAllResultField.getText());
+                    }
+                    
                     registerPlugin.submitSearchRequest(searchParams);
                     logTextArea.append("Submitting: " + query + "\n");
+                    searchQueryTextArea.setText("");
                 }
                 break;
             case 1:
@@ -260,6 +278,18 @@ public class EPRegisterFrame extends javax.swing.JFrame {
                 logTextArea.append("Get data: " + getDataTextArea.getText() + "\n");
         }
     }//GEN-LAST:event_executeButtonActionPerformed
+
+    private void searchAllResultButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchAllResultButtonActionPerformed
+        JFileChooser fc = new JFileChooser();
+        int i = fc.showSaveDialog(this);
+        if (i==JFileChooser.APPROVE_OPTION) {
+            File resultFile = fc.getSelectedFile();
+            String path = resultFile.getAbsolutePath();
+            searchAllResultField.setText(path);
+        } else {
+            searchSampleResultButton.setSelected(true);
+        }
+    }//GEN-LAST:event_searchAllResultButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -308,8 +338,6 @@ public class EPRegisterFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JRadioButton jRadioButton3;
     private javax.swing.JRadioButton jRadioButton4;
     private javax.swing.JRadioButton jRadioButton5;
@@ -319,9 +347,11 @@ public class EPRegisterFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextArea logTextArea;
+    private javax.swing.JRadioButton searchAllResultButton;
+    private javax.swing.JTextField searchAllResultField;
     private javax.swing.JTextArea searchQueryTextArea;
+    private javax.swing.JRadioButton searchSampleResultButton;
     // End of variables declaration//GEN-END:variables
 }

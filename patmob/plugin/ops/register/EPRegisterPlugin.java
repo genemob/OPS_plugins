@@ -6,6 +6,9 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import patmob.core.PatmobPlugin;
+import static patmob.core.PatmobPlugin.coreAccess;
+import patmob.core.TreeBranchEditor_2;
+import patmob.data.PatentTreeNode;
 import patmob.data.ops.impl.RegisterRequest;
 import patmob.data.ops.impl.RegisterRequestParams;
 
@@ -36,7 +39,24 @@ public class EPRegisterPlugin implements PatmobPlugin {
 //        RegisterRequestParams searchParams = 
 //                new RegisterRequestParams("(pa = sanofi and pn = ep) and pd >= 2009");
         RegisterRequest rr = new RegisterRequest(searchParams);
-        rr.submit();
+//        rr.submit();
+        
+        searchParams = rr.submitCall();
+        PatentTreeNode patents = searchParams.getPatents();
+        if (patents!=null) {
+            switch (searchParams.getResultType()) {
+                case RegisterRequestParams.SAMPLE_RESULT:
+                    //show editor window
+                    new TreeBranchEditor_2(
+                        patents, coreAccess.getController()).setVisible(true);                    
+                    break;
+                case RegisterRequestParams.ALL_RESULT:
+                    //write to file
+                    System.out.println(patents.getDescription());
+            }
+        } else {
+            System.out.println("submitSearchRequest: NULL response");
+        }
     }
     
     public void submitBiblioRequest() {
