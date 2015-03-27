@@ -292,7 +292,7 @@ public class EPRegisterFrame extends javax.swing.JFrame {
                 if (numbersFromUserRadioButton.isSelected()) {
                     patentNumbers = getDataTextArea.getText().split("[ ,;]");
                 }
-                
+                // 20150326 GitHub problems
                 RegisterRequestParams searchParams = 
                         new RegisterRequestParams(patentNumbers);
                 registerPlugin.submitBiblioRequest(searchParams);
