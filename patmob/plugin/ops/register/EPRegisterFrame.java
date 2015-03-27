@@ -5,9 +5,12 @@
  */
 package patmob.plugin.ops.register;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
 import javax.swing.JFileChooser;
-import patmob.data.ops.impl.RegisterRequestParams;
+import patmob.data.ops.impl.register.RegisterRequestParams;
 
 /**
  *
@@ -15,6 +18,7 @@ import patmob.data.ops.impl.RegisterRequestParams;
  */
 public class EPRegisterFrame extends javax.swing.JFrame {
     EPRegisterPlugin registerPlugin;
+    String[] patentNumbers;
 
     /**
      * Creates new form EPRegisterFrame
@@ -51,8 +55,8 @@ public class EPRegisterFrame extends javax.swing.JFrame {
         searchAllResultField = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        jRadioButton3 = new javax.swing.JRadioButton();
-        jRadioButton4 = new javax.swing.JRadioButton();
+        numbersFromUserRadioButton = new javax.swing.JRadioButton();
+        numbersFromFileRadioButton = new javax.swing.JRadioButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         getDataTextArea = new javax.swing.JTextArea();
         jLabel3 = new javax.swing.JLabel();
@@ -131,12 +135,22 @@ public class EPRegisterFrame extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Search Register", jPanel2);
 
-        buttonGroup1.add(jRadioButton3);
-        jRadioButton3.setSelected(true);
-        jRadioButton3.setText("Enter Publication Numbers");
+        buttonGroup1.add(numbersFromUserRadioButton);
+        numbersFromUserRadioButton.setSelected(true);
+        numbersFromUserRadioButton.setText("Enter Publication Numbers");
+        numbersFromUserRadioButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                numbersFromUserRadioButtonActionPerformed(evt);
+            }
+        });
 
-        buttonGroup1.add(jRadioButton4);
-        jRadioButton4.setText("Get Numbers from File");
+        buttonGroup1.add(numbersFromFileRadioButton);
+        numbersFromFileRadioButton.setText("Get Numbers from File");
+        numbersFromFileRadioButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                numbersFromFileRadioButtonActionPerformed(evt);
+            }
+        });
 
         getDataTextArea.setColumns(20);
         getDataTextArea.setRows(2);
@@ -163,9 +177,9 @@ public class EPRegisterFrame extends javax.swing.JFrame {
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jRadioButton5)
                             .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addComponent(jRadioButton3)
+                                .addComponent(numbersFromUserRadioButton)
                                 .addGap(18, 18, 18)
-                                .addComponent(jRadioButton4))
+                                .addComponent(numbersFromFileRadioButton))
                             .addComponent(jLabel3))
                         .addGap(0, 73, Short.MAX_VALUE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
@@ -179,8 +193,8 @@ public class EPRegisterFrame extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jRadioButton3)
-                    .addComponent(jRadioButton4))
+                    .addComponent(numbersFromUserRadioButton)
+                    .addComponent(numbersFromFileRadioButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 46, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -275,7 +289,17 @@ public class EPRegisterFrame extends javax.swing.JFrame {
                 break;
             case 1:
                 //Get data
-                logTextArea.append("Get data: " + getDataTextArea.getText() + "\n");
+                if (numbersFromUserRadioButton.isSelected()) {
+                    patentNumbers = getDataTextArea.getText().split("[ ,;]");
+                }
+                
+                RegisterRequestParams searchParams = 
+                        new RegisterRequestParams(patentNumbers);
+                registerPlugin.submitBiblioRequest(searchParams);
+//                for (String patent : patentNumbers) {
+//                    System.out.println(patent);
+//                }
+//                logTextArea.append("Get data: " + getDataTextArea.getText() + "\n");
         }
     }//GEN-LAST:event_executeButtonActionPerformed
 
@@ -291,6 +315,44 @@ public class EPRegisterFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_searchAllResultButtonActionPerformed
 
+    private void numbersFromFileRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_numbersFromFileRadioButtonActionPerformed
+        JFileChooser fc = new JFileChooser();
+        int i = fc.showOpenDialog(this);
+        if (i==JFileChooser.APPROVE_OPTION) {
+            getDataTextArea.setEditable(false);
+            getDataTextArea.setText(getNumbersFromFile(fc.getSelectedFile()));
+            //and store numbers in patentArrayList
+        } else {
+            numbersFromUserRadioButton.setSelected(true);
+        }
+    }//GEN-LAST:event_numbersFromFileRadioButtonActionPerformed
+
+    private void numbersFromUserRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_numbersFromUserRadioButtonActionPerformed
+        getDataTextArea.setText("");
+        getDataTextArea.setEditable(true);
+    }//GEN-LAST:event_numbersFromUserRadioButtonActionPerformed
+
+    private String getNumbersFromFile(File patentListFile) {
+        ArrayList<String> patentArrayList = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(patentListFile))) {
+            String line;
+            while ((line=br.readLine())!=null) {
+                if (line.contains(" ")) {
+                    //skip kind code etc,
+                    patentArrayList.add(line.substring(0, line.indexOf(" ")));
+                } else {
+                    patentArrayList.add(line);
+                }
+            }
+            patentNumbers = patentArrayList.toArray(new String[0]);
+        } catch (Exception x) {
+            System.out.println("getNumbersFromFile: " + x);
+        }
+        return patentListFile.getAbsolutePath() + "\n" +
+                patentArrayList.get(0) + "... and " + 
+                (patentArrayList.size() - 1 ) + " more";
+    }
     /**
      * @param args the command line arguments
      */
@@ -320,6 +382,7 @@ public class EPRegisterFrame extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new EPRegisterFrame().setVisible(true);
             }
@@ -338,8 +401,6 @@ public class EPRegisterFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JRadioButton jRadioButton3;
-    private javax.swing.JRadioButton jRadioButton4;
     private javax.swing.JRadioButton jRadioButton5;
     private javax.swing.JRadioButton jRadioButton6;
     private javax.swing.JScrollPane jScrollPane1;
@@ -349,6 +410,8 @@ public class EPRegisterFrame extends javax.swing.JFrame {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextArea logTextArea;
+    private javax.swing.JRadioButton numbersFromFileRadioButton;
+    private javax.swing.JRadioButton numbersFromUserRadioButton;
     private javax.swing.JRadioButton searchAllResultButton;
     private javax.swing.JTextField searchAllResultField;
     private javax.swing.JTextArea searchQueryTextArea;
