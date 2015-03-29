@@ -98,7 +98,12 @@ public class EPRegisterPlugin implements PatmobPlugin {
 //        String[] pubNums = patentList.toArray(new String[0]);
 //        RegisterRequestParams searchParams = new RegisterRequestParams(pubNums);
         RegisterRequest rr = new RegisterRequest(searchParams);
-        rr.submit();
+        searchParams = rr.submitCall();
+        
+        ArrayList<String> rows = searchParams.getResultRows();
+        for (String row : rows) {
+            System.out.println(row);
+        }
     }
     
 }
