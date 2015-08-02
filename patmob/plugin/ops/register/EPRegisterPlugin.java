@@ -9,12 +9,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.JFileChooser;
+import javax.swing.table.DefaultTableModel;
 import patmob.core.PatmobPlugin;
 import static patmob.core.PatmobPlugin.coreAccess;
 import patmob.core.TreeBranchEditor_2;
 import patmob.data.PatentTreeNode;
 import patmob.data.ops.impl.RegisterRequest;
 import patmob.data.ops.impl.register.RegisterRequestParams;
+import patmob.data.table.TestTable;
 
 /**
  *
@@ -76,9 +78,21 @@ public class EPRegisterPlugin implements PatmobPlugin {
         searchParams = rr.submitCall();
         
         ArrayList<String> rows = searchParams.getResultRows();
+        final Object[][] obData = new Object[rows.size()][];
+        final Object[] colNames = new Object[]{"PN", "PA", "TI", "Status", "OP"};
         for (String row : rows) {
-            System.out.println(row);
+//            System.out.println(row);
+            String[] rowData = row.split("\t");
+            obData[rows.indexOf(row)] = rowData;
         }
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new TestTable(new DefaultTableModel(obData, colNames))
+                        .setVisible(true);
+            }
+        });
+        
         
         System.out.println("parseBiblioResults RETURNED " +
                 searchParams.getResultRows().size() + " results for " +
